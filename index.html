@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+  <script type="text/javascript">
+    // <![CDATA[
+    var colours=new Array("#a6f", "#60f", "#60f", "#a6f", "#ccc"); // colours for top, right, bottom and left borders and background of bubbles
+    var bubbles=66; // maximum number of bubbles on screen
+    var over_or_under="over"; // set to "over" for bubbles to always be on top, or "under" to allow them to float behind other objects
+    
+    /****************************
+    * JavaScript Bubble Cursor  *
+    *(c)2010-13 mf2fm web-design*
+    *  http://www.mf2fm.com/rv  *
+    * DON'T EDIT BELOW THIS BOX *
+    ****************************/
+    var x=ox=400;
+    var y=oy=300;
+    var swide=800;
+    var shigh=600;
+    var sleft=sdown=0;
+    var bubb=new Array();
+    var bubbx=new Array();
+    var bubby=new Array();
+    var bubbs=new Array();
+    var sploosh=false;
+    
+    function addLoadEvent(funky) {
+      var oldonload=window.onload;
+      if (typeof(oldonload)!='function') window.onload=funky;
+      else window.onload=function() {
+        if (oldonload) oldonload();
+        funky();
+      }
+    }
+    
+    addLoadEvent(buble);
+    
+    function buble() { if (document.getElementById) {
+      var i, rats, div;
+      for (i=0; i<bubbles; i++) {
+        rats=createDiv("3px", "3px");
+        rats.style.visibility="hidden";
+      rats.style.zIndex=(over_or_under=="over")?"1001":"0";
+    
+        div=createDiv("auto", "auto");
+        rats.appendChild(div);
+        div=div.style;
+        div.top="1px";
+        div.left="0px";
+        div.bottom="1px";
+        div.right="0px";
+        div.borderLeft="1px solid "+colours[3];
+        div.borderRight="1px solid "+colours[1];
+    
+        div=createDiv("auto", "auto");
+        rats.appendChild(div);
+        div=div.style;
+        div.top="0px";
+        div.left="1px";
+        div.right="1px";
+        div.bottom="0px"
+        div.borderTop="1px solid "+colours[0];
+        div.borderBottom="1px solid "+colours[2];
+    
+        div=createDiv("auto", "auto");
+        rats.appendChild(div);
+        div=div.style;
+        div.left="1px";
+        div.right="1px";
+        div.bottom="1px";
+        div.top="1px";
+        div.backgroundColor=colours[4];
+        if (navigator.appName=="Microsoft Internet Explorer") div.filter="alpha(opacity=50)";
+        else div.opacity=0.5;
+        document.body.appendChild(rats);
+        bubb[i]=rats.style;
+      }
+      set_scroll();
+      set_width();
+      bubble();
+    }}
+    
+    function bubble() {
+      var c;
+      if (Math.abs(x-ox)>1 || Math.abs(y-oy)>1) {
+        ox=x;
+        oy=y;
+        for (c=0; c<bubbles; c++) if (!bubby[c]) {
+          bubb[c].left=(bubbx[c]=x)+"px";
+          bubb[c].top=(bubby[c]=y-3)+"px";
+          bubb[c].width="3px";
+          bubb[c].height="3px"
+          bubb[c].visibility="visible";
+          bubbs[c]=3;
+          break;
+        }
+      }
+      for (c=0; c<bubbles; c++) if (bubby[c]) update_bubb(c);
+      setTimeout("bubble()", 40);
+    }
+    
+    document.onmousedown=splash;
+    document.onmouseup=function(){clearTimeout(sploosh);};
+    
+    function splash() {
+      ox=-1;
+      oy=-1;
+      sploosh=setTimeout('splash()', 100);
+    }
+    
+    function update_bubb(i) {
+      if (bubby[i]) {
+        bubby[i]-=bubbs[i]/2+i%2;
+        bubbx[i]+=(i%5-2)/5;
+        if (bubby[i]>sdown && bubbx[i]>sleft && bubbx[i]<sleft+swide+bubbs[i]) {
+        if (Math.random()<bubbs[i]/shigh*2 && bubbs[i]++<8) {
+        bubb[i].width=bubbs[i]+"px";
+        bubb[i].height=bubbs[i]+"px";
+        }
+          bubb[i].top=bubby[i]+"px";
+          bubb[i].left=bubbx[i]+"px";
+        }
+        else {
+          bubb[i].visibility="hidden";
+          bubby[i]=0;
+          return;
+        }
+      }
+    }
+    
+    document.onmousemove=mouse;
+    function mouse(e) {
+      if (e) {
+        y=e.pageY;
+        x=e.pageX;
+      }
+      else {
+        set_scroll();
+        y=event.y+sdown;
+        x=event.x+sleft;
+      }
+    }
+    
+    window.onresize=set_width;
+    function set_width() {
+      var sw_min=999999;
+      var sh_min=999999;
+      if (document.documentElement && document.documentElement.clientWidth) {
+        if (document.documentElement.clientWidth>0) sw_min=document.documentElement.clientWidth;
+        if (document.documentElement.clientHeight>0) sh_min=document.documentElement.clientHeight;
+      }
+      if (typeof(self.innerWidth)=='number' && self.innerWidth) {
+        if (self.innerWidth>0 && self.innerWidth<sw_min) sw_min=self.innerWidth;
+        if (self.innerHeight>0 && self.innerHeight<sh_min) sh_min=self.innerHeight;
+      }
+      if (document.body.clientWidth) {
+        if (document.body.clientWidth>0 && document.body.clientWidth<sw_min) sw_min=document.body.clientWidth;
+        if (document.body.clientHeight>0 && document.body.clientHeight<sh_min) sh_min=document.body.clientHeight;
+      }
+      if (sw_min==999999 || sh_min==999999) {
+        sw_min=800;
+        sh_min=600;
+      }
+      swide=sw_min;
+      shigh=sh_min;
+    }
+    
+    window.onscroll=set_scroll;
+    function set_scroll() {
+      if (typeof(self.pageYOffset)=='number') {
+        sdown=self.pageYOffset;
+        sleft=self.pageXOffset;
+      }
+      else if (document.body && (document.body.scrollTop || document.body.scrollLeft)) {
+        sdown=document.body.scrollTop;
+        sleft=document.body.scrollLeft;
+      }
+      else if (document.documentElement && (document.documentElement.scrollTop || document.documentElement.scrollLeft)) {
+        sleft=document.documentElement.scrollLeft;
+        sdown=document.documentElement.scrollTop;
+      }
+      else {
+        sdown=0;
+        sleft=0;
+      }
+    }
+    
+    function createDiv(height, width) {
+      var div=document.createElement("div");
+      div.style.position="absolute";
+      div.style.height=height;
+      div.style.width=width;
+      div.style.overflow="hidden";
+      div.style.backgroundColor="transparent";
+      return (div);
+    }
+    // ]]>
+    </script>
+<head>
+  <link href = "styles.css?ver=20" rel = "stylesheet">
+  <meta charset="utf-8">
+  <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+  <link href="https://fonts.googleapis.com/css?family=Archivo+Black&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Lalezar&display=swap" rel="stylesheet">
+  <link href="('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.0/116watermelon.woff') format('woff');font-weight: normal;
+font-style: normal;" rel="stylesheet">
+  <!-- <script
+  src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+  integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+  crossorigin="anonymous"></script> -->
+  <script src="script.js?ver=13"></script>
+</head>
+<body>
+  <div class = "blackBackground">
+    <div class = "razor"></div>
+  </div>
+  <!-- fixed -->
+  <div class = "menu">
+    <div class = "menuLeft">
+      <p class = "menuText" id = "menuIntro">wittyarea</p>
+      <p class = "menuText" id = "menuProduct">Introduction</p>
+      <p class = "menuText" id = "menuCounceling">Work Together</p>
+      <p class = "menuText" id = "menuCounceling">Personal Work</p>
+
+    </div>
+    <div class = "menuRight">
+      <div class = "menuRightBox">
+        <div class = "menuUpLine"></div>
+        <p class = "menuRightText"><b>E kimheesu0117@gmail.com<br>E kimjiun0326@gmail.com</b></p>
+        <br>
+        <br>
+        <p class = "menuRightText">T 010 - 7542 - 3240</p>
+        <p class = "menuRightText">T 010 - 4936 - 4597</p>
+      </div>
+    </div>
+  </div>
+  <a href = "#"><img class = "companyIcon" src = 'imgs/logo.png'></a>
+  <div class = "pageNumberBox"><p class = "pageNumber"><span class = "pageNumberValue">01</span> / 04</p></div>
+  <a href = "#" target = "_blank"><img src = "imgs/github.png" class = "icon" id = "facebook"></a>
+  <a href = "#" target = "_blank"><img src = "imgs/instagram.png" class = "icon" id = "instagram"></a>
+  <img src = "imgs/arrow.gif" class = "arrow">
+  <div class = "menuButton">
+    <div class = "menuBtnUpLine"></div>
+    <div class = "menuBtnBottomLine"></div>
+  </div>
+  <!-- slider -->
+  <div
+  <ul class = "slider">
+    <li class = "page" id = "page1" alt="">
+      <p class = "title" id = "introTitle">portfolio</p>
+      <p class = "headLine" id = "introHeadLine">
+        <span class = "bdText"></span>
+           <br><br><br><br>
+           
+
+      </p>
+      <div class = "moreLine" id = "introMore"><a href = "#" class = "more">more</a>
+        <div class = "moreBorderLine"></div>
+      </div>
+    </li>
+    <li class = "page" id = "page2" alt="">
+      <p class = "title" id = "productTitle">Content</p>
+      <p class = "headLine" id = "productHeadLine">
+        01.<br>
+        Amy & Able ‘s <br>
+        Introduction
+      </p>
+      <div class = "moreLine" id = "productMore"><a href = "#" onclick="location.href='Introduction_amy.html'"  class = "more">more</a>
+        <div class = "moreBorderLine"></div>
+      </div>
+    </li>
+  </li>
+  <li class = "page" id = "page3" alt="">
+    <p class = "title" id = "councelingTitle">Content</p>
+    <p class = "headLine" id = "councelingHeadLine">
+      02.<br>
+      Work Together <br>
+    </p>
+    <div class = "moreLine" id = "councelingMore"><a href = "#" class = "more">more</a>
+      <div class = "moreBorderLine"></div>
+    </div>
+  </li>
+    <li class = "page" id = "page4" alt="">
+      <p class = "title" id = "councelingTitle">Content</p>
+      <p class = "headLine" id = "councelingHeadLine">
+        03.<br>
+        Personal Work <br>
+      </p>
+      <div class = "moreLine" id = "councelingMore"><a href = "#" class = "more">more</a>
+        <div class = "moreBorderLine"></div>
+      </div>
+    </li>
+  </li>
+  <li class = "page" id = "page5" alt="">
+    <p class = "title" id = "councelingTitle">Content</p>
+    <p class = "headLine" id = "councelingHeadLine">
+    </p>
+    <div class = "moreLine" id = "councelingMore"><a href = "#" class = "more">more</a>
+      <div class = "moreBorderLine"></div>
+    </div>
+  </li>
+  <div class="bubble b1"></div>
+  <div class="bubble b2"></div>
+  <div class="bubble b3"></div>
+  <div class="bubble b4"></div>
+  <div class="bubble b5"></div>
+  <div class="bubble b6"></div>
+  <div class="bubble b7"></div>
+  </ul>
+</body>
+</html>
